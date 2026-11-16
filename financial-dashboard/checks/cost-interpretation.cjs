@@ -1,36 +1,34 @@
 const assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const {pathToFileURL}=require('node:url');
 const path=require('node:path');
-const{pathToFileURL}=require('node:url');
-const{chromium}=require('playwright');
 (async()=>{
- const{smallVideoCost,sharedEndpointAllocation}=await import('../src/videoCostModel.mjs');
- const sample=smallVideoCost(.89,10,1.8312,.0000055,.00000044,.025);
- assert.ok(sample.s3>.000026&&sample.s3<.000028);
- assert.ok(Math.abs(sample.total-.005113328017950058)<.0000001);
- assert.ok(Math.abs(sharedEndpointAllocation(19,1.8312).daily-2.313094736842105)<1e-12);
- assert.ok(Math.abs(sharedEndpointAllocation(19,1.8312).monthly730-2.345221052631579)<1e-12);
+ const {smallVideoCost}=await import('../src/videoCostModel.mjs');
+ const a=smallVideoCost(.89,8,1.8312,.0000055,.00000044,.025),b=smallVideoCost(.92,18,1.8312,.0000055,.00000044,.025);
+ assert.ok(Math.abs(a.gpu+b.gpu-.0132253333333333)<1e-12);
+ assert.ok(Math.abs((a.total+b.total)/2-.006639677839917341)<1e-12);
  const browser=await chromium.launch({channel:'msedge'});
  try{
-  const page=await browser.newPage({viewport:{width:1440,height:900}});
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
   await page.goto(pathToFileURL(path.resolve('dist/index.html')).href+'#/aws-costs');
-  await page.locator('#sample-runtime-cost').waitFor();
-  assert.equal(await page.getByText('Bundled snapshot · 16 Nov 2026',{exact:true}).count(),0);
-  assert.equal(await page.getByText('Snapshot context · 1–15 Nov 2026',{exact:true}).count(),0);
-  assert.equal(await page.locator('.sharedfilters').getByText(/94.1997/).count(),0);
-  assert.equal(await page.getByText('Source totals differ by $0.01 · 15 elapsed days used',{exact:true}).count(),0);
+  await page.locator('#two-run-cost').waitFor();
+  assert.equal(await page.locator('[data-chart]').count(),5);
+  assert.equal(await page.locator('input[type=number]').count(),0);
   await page.getByRole('button',{name:'USD',exact:true}).click();
-  assert.match(await page.locator('[data-metric="S3 · upload, read and first month"]').innerText(),/0.000026/);
-  assert.match(await page.locator('[data-metric="Always-on allocation \/ video"]').innerText(),/2.3131/);
-  await page.getByLabel('Completed videos / day · assumption',{exact:true}).selectOption('100');
-  assert.match(await page.locator('[data-metric="Always-on allocation \/ video"]').innerText(),/0.4395/);
-  await page.mouse.move(0,0);
-  await page.locator('[data-metric="S3 · upload, read and first month"]').focus();
+  assert.match(await page.locator('[data-metric="Both runs · compute + S3"]').innerText(),/0.013279/);
+  assert.match(await page.locator('[data-metric="Average per run"]').innerText(),/0.00664/);
+  await page.locator('#two-run-cost rect[role=button]').first().focus();
   await page.getByRole('tooltip').waitFor();
-  assert.match(await page.getByRole('tooltip').innerText(),/FX/);
+  assert.match(await page.getByRole('tooltip').innerText(),/not verified billable GPU uptime/);
   await page.keyboard.press('Escape');
-  for(const width of [1440,1024,390]){await page.setViewportSize({width,height:900});await page.waitForFunction(w=>document.documentElement.scrollWidth<=w,width,{timeout:3000})}
+  await page.getByLabel('Endpoint uptime · scenario',{exact:true}).selectOption('60');
+  await page.getByRole('button',{name:'INR',exact:true}).click();
+  for(const width of [1440,1024,390]){await page.setViewportSize({width,height:1000});await page.waitForFunction(w=>document.documentElement.scrollWidth<=w,width,{timeout:3000})}
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:'.artifacts/aws-simplified.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('PASS: verified small-file arithmetic, consistent daily/monthly GPU allocation, removed layout stamps, preserved tooltip provenance, dropdowns and responsive layout.');
+  console.log('PASS: corrected two-run arithmetic, five charts, uptime selector, tooltips, currencies and responsive layout.');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exit(1)});
+

@@ -9,3 +9,5 @@
 @media(max-width:650px){.section-line{align-items:flex-start;flex-direction:column}.section-line h2{font-size:20px}.iteration-table{max-width:100%;overflow:auto}.iteration-table table{min-width:560px}}
 .light .audit-ledger-strip{background:#f5f4ed;border-color:#d4d8ca}.light .audit-ledger-strip summary{color:#6b604d}.iteration-table td{white-space:nowrap}.iteration-table th{white-space:normal}
 .light .method-details{background:#f5f4ed;border:1px solid #d4d8ca;border-radius:9px;padding:11px 14px;margin:15px 0}.method-details summary{font-size:12px;cursor:pointer;color:#77634c}.method-details p{font-size:12px;line-height:1.5}.practical-costs .visual-grid{margin-top:16px}.practical-costs .visual-metrics .metric strong{font-size:21px}.light .practical-costs .grapharea>.plotbox{min-height:240px}
+
+@media(min-width:1300px){.aws-charts{grid-template-columns:repeat(3,minmax(0,1fr))}.aws-charts .splitring{flex-direction:column;gap:12px}.aws-charts .ringbox{height:180px;min-height:180px}.aws-charts .ringlist{width:100%}.aws-charts .ringlist .tip-target{padding:3px 0}.aws-charts .api-tools{flex-wrap:wrap}}
