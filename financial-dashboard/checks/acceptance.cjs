@@ -36,7 +36,7 @@ const url=pathToFileURL(path.join(root,'dist/index.html')).href;
  }
  await page.setViewportSize({width:1440,height:900});
  await page.getByRole('link',{name:'Scale model',exact:true}).click();
- await page.getByLabel('Processing speed · assumption',{exact:true}).selectOption('120');
+ await page.getByLabel('Analysis time basis',{exact:true}).selectOption('run18');
  assert.equal(await page.locator('input[type=number]').count(),0);
  await page.getByRole('link',{name:'Overview',exact:true}).click();
  await page.getByLabel('Expand AWS Cost by Service',{exact:true}).click();
