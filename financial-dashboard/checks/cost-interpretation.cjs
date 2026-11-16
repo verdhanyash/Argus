@@ -31,6 +31,17 @@ const path=require('node:path');
   assert.match(await page.getByRole('tooltip').innerText(),/not verified billable GPU uptime/);
   assert.equal(await page.getByRole('tooltip').getByRole('link').count(),0);
   await page.keyboard.press('Escape');
+  const heights=[],axisLabels=[];
+  for(const [seconds,expected] of [['60','0.03057'],['300','0.15265'],['900','0.45785'],['3600','1.83125']]){
+   await page.getByLabel('Endpoint uptime · scenario',{exact:true}).selectOption(seconds);
+   await page.waitForFunction(text=>document.querySelector('#endpoint-uptime .recharts-label-list')&&[...document.querySelectorAll('#endpoint-uptime .recharts-label-list text')].some(el=>el.textContent.includes(text)),expected);
+   const labels=await page.locator('#endpoint-uptime .recharts-label-list').textContent();
+   assert.match(labels,/0.01328/);assert.ok(labels.includes(expected));
+   heights.push(await page.locator('#endpoint-uptime rect[role=button]').last().getAttribute('height').then(Number));
+   axisLabels.push(await page.locator('#endpoint-uptime .yAxis').textContent());
+  }
+  assert.ok(heights.every((height,index)=>index===0||height>heights[index-1]*2),'Right bar must visibly grow');
+  assert.ok(axisLabels.every(axis=>axis===axisLabels[0]),'Axis must remain fixed across dropdown choices');
   await page.getByLabel('Endpoint uptime · scenario',{exact:true}).selectOption('60');
   await page.getByRole('button',{name:'INR',exact:true}).click();
   for(const width of [1440,1024,390]){await page.setViewportSize({width,height:1000});await page.waitForFunction(w=>document.documentElement.scrollWidth<=w,width,{timeout:3000});
