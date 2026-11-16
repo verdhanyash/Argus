@@ -14,6 +14,10 @@ const path=require('node:path');
   await page.goto(pathToFileURL(path.resolve('dist/index.html')).href+'#/aws-costs');
   await page.locator('#two-run-cost').waitFor();
   assert.equal(await page.locator('[data-chart]').count(),5);
+  assert.equal(await page.locator('.video-assumptions tbody tr').count(),10);
+  assert.match(await page.locator('.video-assumptions tbody tr').last().innerText(),/0.152600/);
+  assert.equal(await page.locator('.workspacebrand').innerText(),'Argus');
+  assert.match(await page.title(),/Argus/);
   assert.equal(await page.getByRole('link',{name:/Source|Quick guide/}).count(),0);
   assert.equal(await page.locator('.method-details').count(),0);
   assert.equal(await page.locator('input[type=number]').count(),0);
@@ -29,7 +33,8 @@ const path=require('node:path');
   await page.keyboard.press('Escape');
   await page.getByLabel('Endpoint uptime · scenario',{exact:true}).selectOption('60');
   await page.getByRole('button',{name:'INR',exact:true}).click();
-  for(const width of [1440,1024,390]){await page.setViewportSize({width,height:1000});await page.waitForFunction(w=>document.documentElement.scrollWidth<=w,width,{timeout:3000})}
+  for(const width of [1440,1024,390]){await page.setViewportSize({width,height:1000});await page.waitForFunction(w=>document.documentElement.scrollWidth<=w,width,{timeout:3000});
+   const fits=await page.locator('#aws-service-mix').evaluate(card=>{const c=card.getBoundingClientRect();return [...card.querySelectorAll('.ringlist .tip-target')].every(el=>{const r=el.getBoundingClientRect();return r.top>=c.top&&r.bottom<=c.bottom&&r.left>=c.left&&r.right<=c.right})});assert.ok(fits,'Service legend clipped at '+width);}
   await page.setViewportSize({width:1440,height:1000});
   await page.screenshot({path:'.artifacts/aws-simplified.png',fullPage:true});
   assert.deepEqual(errors,[]);

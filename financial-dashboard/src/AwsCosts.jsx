@@ -4,6 +4,7 @@ import {tables,IDLE,RATE,auditSource} from './dataLayer';
 import {Ring,Metric,Link,Plot,Panel,Keys} from './ChartKit';
 import {Filter} from './Benchmark';
 import {PracticalVideoCosts} from './PracticalVideoCosts';
+import {VideoAssumptions} from './VideoAssumptions';
 import {MoneyDetail,Missing} from './RichTooltip';
 const labels={'Amazon SageMaker':'SageMaker','Amazon Simple Storage Service':'S3','AmazonCloudWatch':'CloudWatch'};
 const meanings={'Cost Explorer':'Cost Explorer charge shown in supplied console snapshot',RDS:'Relational Database Service charge shown in supplied console snapshot',SageMaker:'Endpoint, training compute and Studio usage',S3:'Stored data, requests and transfer',CloudWatch:'Metrics, ingestion and retained logs','Studio disk':'Retained 5 GB notebook disk',Other:'Other nonzero project service charges'};
@@ -66,6 +67,6 @@ export function AwsPage(){
  <Panel title="Service spending mix" id="aws-service-mix" rows={tables.aws_burn_snapshots}><AwsComparison compact/></Panel>
  <Panel title="Six-month spending" id="aws-six-months" rows={monthly}><Plot height={250} data={monthly} series={[{key:'cost',name:'Gross usage'}]} format={money} detail={r=><MoneyDetail label={r.name+' 2026'} usd={r.cost} status={r.name==='Nov MTD'?'Incomplete month · console snapshot':'User-supplied monthly summary'} notes="November covers 15 elapsed days. Zeros for June–September were explicitly supplied."/>}/></Panel>
  <Panel title="Month-end outlook" id="burn-month-end" rows={outlook} foot={<small>Run rate is a scenario; AWS forecast uses a separate method.</small>}><Plot height={250} data={outlook} series={[{key:'cost',name:'Gross usage / outlook'}]} format={money} detail={r=><MoneyDetail label={r.name} usd={r.cost} formula={r.name==='Linear run rate'?'116.78 / 15 × 30':undefined} status={r.name==='Linear run rate'?'Calculated scenario':r.name==='AWS forecast'?'AWS forecast from screenshot':'Supplied console total'}/>}/></Panel>
- </div><PracticalVideoCosts/>
+ </div><PracticalVideoCosts/><VideoAssumptions/>
  </>
 }
