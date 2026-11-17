@@ -23,7 +23,7 @@ const{chromium}=require('playwright');const{pathToFileURL}=require('node:url');c
  await p.getByLabel('Endpoint uptime floor',{exact:true}).selectOption('1');
  assert.match(await p.locator('[data-metric="Allocated cost / run"]').innerText(),/0.915627/);
  assert.match(await p.locator('[data-metric="Runtime-only cost / run"]').innerText(),/0.00664/);
- assert.equal(await p.locator('[data-chart]').count(),4);
+ assert.equal(await p.locator('[data-chart]').count(),6);
  assert.equal(await p.locator('input[type=number]').count(),0);
  await p.getByLabel('Analysis time basis',{exact:true}).selectOption('run18');
  assert.match(await p.locator('[data-metric="Runtime-only cost / run"]').innerText(),/0.009183/);

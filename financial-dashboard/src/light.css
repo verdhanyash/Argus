@@ -31,3 +31,5 @@
 .light .detailpage .scale-charts .ringbox{height:230px;min-height:230px;flex:none}
 .scale-charts .ringlist .tip-target{display:flex;align-items:center;gap:6px;padding:6px 0;line-height:1.5}
 @media(max-width:650px){.scale-charts .splitring{flex-direction:column}.scale-charts .ringbox{width:100%;max-width:220px}.scale-charts .ringlist{width:100%}}
+
+.pricing-scenarios{margin-top:28px;min-width:0}.pricing-scenarios .scenario-select{max-width:250px;min-width:150px}.pricing-scenarios .charthead{flex-wrap:wrap;gap:10px}.pricing-scenarios .charthead h2{flex:1;min-width:180px}.home #api .tabs{gap:4px;flex-wrap:wrap}.home #api .tabs button{padding:3px 7px;font-size:10px}.home #plans .api-tools select,.home #api .api-tools select{min-width:0;max-width:100%;font-size:9px;padding:3px 6px}.pricing-scenarios .scenario-caption{margin-bottom:14px}

@@ -2,6 +2,7 @@ import React from 'react';
 import {useStore} from './store';
 import {RATE,tables,FX,FX_DATE,gpuSource} from './dataLayer';
 import {scaleRunCosts} from './scaleCostModel.mjs';
+import {PricingScenarios} from './PricingScenarios';
 import {ScenarioSelect} from './GpuPage';
 import {Panel,Metric,Plot,Keys,Ring} from './ChartKit';
 import {MoneyDetail} from './RichTooltip';
@@ -38,5 +39,5 @@ export function ScalePage(){
  <Panel title="Cost per run as volume grows" id="scale-per-run" rows={exportRows(volumeRows)} foot={<Keys items={['Runtime-only allocation','With selected uptime floor']}/>}><Plot lines height={270} data={volumeRows} series={[{key:'runtimePerRun',name:'Runtime-only allocation'},{key:'perRun',name:'With selected uptime floor'}]} format={v=>money(v,{digits:4})} detail={details}/></Panel>
  <Panel title="8, 13 and 18 seconds · same volume" id="scale-runtime-bases" rows={baseRows.map(r=>({...r,currency:'USD',value_status:'same selected volume and uptime floor; analysis-time assumptions',source_url:evidence}))} foot={<Keys items={['Active GPU','Idle GPU allocation','S3 requests + storage']}/>}><Plot stack height={250} data={baseRows} series={[{key:'activeGpu',name:'Active GPU'},{key:'idleGpu',name:'Idle GPU allocation'},{key:'s3',name:'S3 requests + storage'}]} format={money} detail={(r,key)=><MoneyDetail label={r.name+' basis · '+key} usd={r[key]} status="Alternative analysis-time assumptions" notes={model.runs+' runs with the same '+floor+' pooled uptime-floor hours. Total = max(active hours, uptime floor) × hourly rate + S3; idle GPU is not counted twice.'}/>}/></Panel>
  <Panel title="Selected allocation mix" id="scale-cost-mix" rows={exportRows([model])}><Ring parts={parts} total={model.total} center={money(model.total)} renderDetail={r=><MoneyDetail label={r.name} usd={r.value} status="Partial cost allocation scenario" notes={model.activeHours.toFixed(4)+' active GPU hours; '+model.billedHours.toFixed(4)+' allocated GPU hours. GPU uptime is pooled across instances; scheduling, concurrency and quota are not validated.'}/>}/></Panel>
- </div><p className="compact-limit">8/18 seconds are supplied analysis times, not measured GPU uptime. S3 assumes one PUT, one GET and one month of storage per new upload. Runtime and full-uptime costs are alternatives. Provisioning, retries, application services, other resources and tax are excluded.</p></>
+ </div><PricingScenarios/><p className="compact-limit">8/18 seconds are supplied analysis times, not measured GPU uptime. S3 assumes one PUT, one GET and one month of storage per new upload. Runtime and full-uptime costs are alternatives. Provisioning, retries, application services, other resources and tax are excluded.</p></>
 }

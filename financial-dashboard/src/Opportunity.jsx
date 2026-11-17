@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import {useStore} from './store';
-import {tables} from './dataLayer';
+import {tables,FX} from './dataLayer';
+import {subscriptionEconomics,apiOfferRows,proposalExport,TRIAL_POLICY} from './pricingStrategy.mjs';
 import {CANVAS_CARDS} from './config';
 import {Panel,Plot,Ring,Keys,Link} from './ChartKit';
 import {Filter} from './Benchmark';
@@ -49,12 +50,16 @@ export function GeographicChart(){
  <small>Speech analytics · {mode==='Size'?region.year:region.cagr_start_year+'–'+region.cagr_end_year} · <Link href={region.source_url}/></small></>
 }
 export function PlanChart(){
- const {inputs}=useStore();
- const plans=[{name:'Starter',minutes:30,price:0},{name:'Professional',minutes:Number(inputs.professionalMinutes),price:Number(inputs.professionalPrice)},{name:'Business',minutes:Number(inputs.businessMinutes),price:Number(inputs.businessPrice)}];
- return <><Plot data={plans} series={[{key:'minutes',name:'Included minutes'}]} format={v=>v.toLocaleString()} detail={r=><><b>{r.name} · {r.minutes} included minutes</b><MoneyDetail label="Proposed plan price" usd={r.price} status="user assumption; proposed, not verified" source="./plan-allowances.txt" notes={r.name==='Starter'?'30-minute trial once':'Monthly allowance; consumed minutes not supplied.'}/></>}/><small>Proposed allowances · trial once; paid plans monthly</small></>
+ const {money}=useStore(),[metric,setMetric]=useState('minutes');
+ const plans=subscriptionEconomics(FX);
+ const isMoney=['price','contribution'].includes(metric);
+ const fmt=v=>metric==='margin'?v.toFixed(1)+'%':isMoney?money(v):v.toLocaleString();
+ return <><div className="api-tools"><select aria-label="Subscription plan metric" value={metric} onChange={e=>setMetric(e.target.value)}><option value="minutes">Included video minutes</option><option value="price">Monthly subscription price</option><option value="contribution">Full-usage contribution</option><option value="margin">Full-usage processing margin</option></select></div>
+ <Plot data={plans} series={[{key:metric,name:metric==='minutes'?'Included video minutes':metric==='price'?'Proposed monthly price':metric==='margin'?'Estimated processing margin':'Estimated processing contribution'}]} format={fmt} detail={r=><><b>{r.name} · {r.minutes.toLocaleString()} minutes / month</b><MoneyDetail label="Proposed monthly subscription" usd={r.price} status="User pricing proposal; not realised sales" notes={'Native price ₹'+r.priceINR.toLocaleString('en-IN')+'/month; effective ₹'+r.effectiveRateINR.toFixed(4)+'/included minute. Full-usage processing cost '+money(r.cost)+'; contribution '+money(r.contribution)+'; '+r.margin.toFixed(1)+'% margin. Assumed cost ₹4.025/min; fixed/other costs excluded. Minutes expire monthly; overages billed separately, tariff not supplied. Trial is separate: '+TRIAL_POLICY.standardMinutes+' minutes standard, '+TRIAL_POLICY.qualifiedMinutes+' for qualified leads, '+TRIAL_POLICY.enterpriseMinutes+' after enterprise evaluation.'}/></>}/>
+ <small>Proposed monthly plans · {plans.map(r=>money(r.price)).join(' / ')}</small></>;
 }
 const chartComponents={market:MarketChart,revenue:()=> <FinancialChart kind="revenue"/>,composition:()=> <FinancialChart kind="composition"/>,aws:AwsComparison,margin:()=> <FinancialChart kind="margin"/>,expenses:()=> <FinancialChart kind="expenses"/>,api:()=> <ApiComparison compact/>,plans:PlanChart,geography:GeographicChart};
 export default function Opportunity(){
  const financials=useFinancials();const {inputs}=useStore();
- return <div className="nine">{CANVAS_CARDS.map(card=>{const Chart=chartComponents[card.id];const rows=card.id==='market'?marketRows:['revenue','composition','margin','expenses'].includes(card.id)?financials:card.id==='aws'?tables.aws_daily:card.id==='api'?tables.competitor_pricing:card.id==='geography'?tables.market_size_cagr:[{plan:'Starter',minutes:30,status:'proposed one-time trial'},{plan:'Professional',minutes:inputs.professionalMinutes,price_usd:inputs.professionalPrice,status:'proposed monthly allowance'},{plan:'Business',minutes:inputs.businessMinutes,price_usd:inputs.businessPrice,status:'proposed monthly allowance'}];return <Panel zoomable key={card.id} id={card.id} title={card.title} details={card.details} rows={rows}><Chart/></Panel>})}</div>
+ return <div className="nine">{CANVAS_CARDS.map(card=>{const Chart=chartComponents[card.id];const rows=card.id==='market'?marketRows:['revenue','composition','margin','expenses'].includes(card.id)?financials:card.id==='aws'?tables.aws_daily:card.id==='api'?[...tables.competitor_pricing,...proposalExport(apiOfferRows(FX)).map(r=>({...r,company:'Argus',unit:'per video minute'}))]:card.id==='geography'?tables.market_size_cagr:proposalExport(subscriptionEconomics(FX));return <Panel zoomable key={card.id} id={card.id} title={card.title} details={card.details} rows={rows}><Chart/></Panel>})}</div>
 }
